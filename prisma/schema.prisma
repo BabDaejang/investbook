@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id            String   @id @default(cuid())
+
+  // 네이버 API 기반 데이터
+  isbn          String?  @unique
+  title         String
+  authors       String   // JSON 배열 문자열 ["저자1", "저자2"]
+  publisher     String?
+  publishedDate String?
+  description   String?
+  thumbnail     String?  // 표지 이미지 URL
+  naverUrl      String?  // 네이버 도서 페이지 URL
+
+  // 큐레이션 데이터
+  note          String?  // 큐레이터 메모
+  isPublished   Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  categories    BookCategory[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  group       String   // "market" | "domain" | "level"
+  color       String   @default("#6B7280")
+  order       Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  books       BookCategory[]
+}
+
+model BookCategory {
+  bookId      String
+  categoryId  String
+
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, categoryId])
+}
