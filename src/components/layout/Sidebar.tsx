@@ -101,7 +101,12 @@ export function Sidebar({ className }: { className?: string }) {
         </span>
         {totalSelected > 0 && (
           <button
-            onClick={clearCategories}
+            onClick={() => {
+              clearCategories();
+              if (pathname !== '/') {
+                router.push('/');
+              }
+            }}
             className="text-[10px] text-slate-400 hover:text-red-500 transition-colors px-1.5 py-0.5 rounded hover:bg-red-50"
           >
             전체 해제 ({totalSelected})
@@ -166,7 +171,12 @@ export function Sidebar({ className }: { className?: string }) {
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={() => toggleCategory(cat.id)}
+                          onChange={() => {
+                            toggleCategory(cat.id);
+                            if (pathname !== '/') {
+                              router.push('/');
+                            }
+                          }}
                           className="w-3.5 h-3.5 rounded border-slate-300 cursor-pointer shrink-0 accent-slate-800"
                         />
                         {/* 색상 점 */}
