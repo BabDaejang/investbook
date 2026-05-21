@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { BookOpen, Search, Settings, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useUiStore } from '@/store/uiStore';
 
 function HeaderSearch() {
   const router = useRouter();
@@ -49,15 +50,24 @@ function HeaderSearch() {
 }
 
 export function Header() {
+  const router = useRouter();
+  const { clearCategories } = useUiStore();
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    clearCategories();
+    router.push('/');
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center px-4 mx-auto w-full max-w-7xl justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2 shrink-0">
+        <a href="/" onClick={handleLogoClick} className="flex items-center space-x-2 shrink-0">
           <BookOpen className="h-6 w-6 text-blue-600" />
           <span className="font-bold text-sm tracking-tight hidden lg:inline-block">세종 금융경제교육 교사연구회 도서 탐색기</span>
           <span className="font-bold text-sm tracking-tight hidden sm:inline-block lg:hidden">도서 탐색기</span>
-        </Link>
+        </a>
 
         {/* Global Search Input wrapped in Suspense */}
         <Suspense fallback={<div className="flex-1 max-w-sm sm:max-w-md mx-auto h-9 bg-slate-100 rounded-full animate-pulse" />}>
@@ -66,12 +76,10 @@ export function Header() {
 
         {/* Navigation */}
         <div className="flex items-center space-x-2 shrink-0">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1.5">
-              <Library className="h-4 w-4" />
-              <span className="hidden md:inline">내 서재</span>
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1.5" onClick={handleLogoClick}>
+            <Library className="h-4 w-4" />
+            <span className="hidden md:inline">내 서재</span>
+          </Button>
           <Link href="/categories">
             <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1.5">
               <Settings className="h-4 w-4" />

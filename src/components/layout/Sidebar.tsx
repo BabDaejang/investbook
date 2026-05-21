@@ -70,7 +70,10 @@ export function Sidebar({ className }: { className?: string }) {
 
       {/* ── 내 서재 홈 버튼 ── */}
       <button
-        onClick={() => router.push('/')}
+        onClick={() => {
+          clearCategories();
+          router.push('/');
+        }}
         className={cn(
           'flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg transition-all text-left group mb-1',
           isHome
