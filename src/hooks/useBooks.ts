@@ -58,3 +58,93 @@ export function useSaveBook() {
     }
   });
 }
+
+export function useUpdateBook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { categoryIds?: string[]; note?: string; curator?: string; toc?: string } }) => {
+      const res = await fetch(`/api/books/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error('Failed to update book');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['books', data.id] });
+    }
+  });
+}
+
+export function useDeleteBook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/books/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete book');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+    }
+  });
+}
+
+export function useAddCurationNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ bookId, curator, note }: { bookId: string; curator: string; note: string }) => {
+      const res = await fetch(`/api/books/${bookId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curator, note })
+      });
+      if (!res.ok) throw new Error('Failed to add curation note');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['books', data.bookId] });
+    }
+  });
+}
+
+export function useUpdateCurationNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ noteId, bookId, curator, note }: { noteId: string; bookId: string; curator?: string; note?: string }) => {
+      const res = await fetch(`/api/books/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curator, note })
+      });
+      if (!res.ok) throw new Error('Failed to update curation note');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['books', data.bookId] });
+    }
+  });
+}
+
+export function useDeleteCurationNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ noteId, bookId }: { noteId: string; bookId: string }) => {
+      const res = await fetch(`/api/books/notes/${noteId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete curation note');
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['books', variables.bookId] });
+    }
+  });
+}
+
+

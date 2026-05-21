@@ -5,8 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "InvestBook - 투자 도서 큐레이션",
-  description: "투자 및 경제 도서를 체계적으로 큐레이션하는 플랫폼",
+  title: "세종 금융경제교육 교사연구회 도서 탐색기",
+  description: "금융 및 경제 도서를 체계적으로 탐색하고 큐레이션하는 플랫폼",
 };
 
 export default function RootLayout({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { fetchTOCFromAladin } from '@/lib/aladin';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -44,7 +45,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { isbn13, title, authors, publisher, publishedDate, description, thumbnail, naverUrl, categoryIds, note } = body;
+    const { isbn13, title, authors, publisher, publishedDate, description, thumbnail, naverUrl, categoryIds, note, curator, toc } = body;
+
+    // 알라딘에서 목차(TOC) 정보 자동 스크래핑 시도
+    let finalToc = toc;
+    if (!finalToc && isbn13) {
+      console.log(`Attempting to automatically scrape TOC for ISBN ${isbn13} (${title})...`);
+      const scrapedToc = await fetchTOCFromAladin(isbn13);
+      if (scrapedToc) {
+        finalToc = scrapedToc;
+      }
+    }
 
     const book = await prisma.book.create({
       data: {
@@ -56,12 +67,20 @@ export async function POST(request: Request) {
         description,
         thumbnail,
         naverUrl,
-        note,
+        toc: finalToc,
         categories: {
           create: (categoryIds || []).map((id: string) => ({
             category: { connect: { id } }
           }))
-        }
+        },
+        ...(note || curator ? {
+          curationNotes: {
+            create: {
+              note: note || '',
+              curator: curator || '연구원'
+            }
+          }
+        } : {})
       },
       include: {
         categories: { include: { category: true } }
@@ -73,3 +92,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to save book' }, { status: 500 });
   }
 }
+

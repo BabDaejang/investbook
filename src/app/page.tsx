@@ -21,7 +21,7 @@ export default function Home() {
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold tracking-tight">내 서재</h1>
+            <h1 className="text-2xl font-bold tracking-tight">연구회 서재</h1>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground whitespace-nowrap">정렬:</span>
               <Select value={sortBy} onValueChange={(val) => val && setSortBy(val)}>

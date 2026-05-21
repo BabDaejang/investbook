@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { fetchTOCFromAladin } from '@/lib/aladin';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -9,6 +10,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       include: {
         categories: {
           include: { category: true }
+        },
+        curationNotes: {
+          orderBy: { createdAt: 'desc' }
         }
       }
     });
@@ -25,10 +29,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   try {
     const resolvedParams = await params;
     const body = await request.json();
-    const { categoryIds, note } = body;
+    const { categoryIds, toc, scrapeToc } = body;
 
     const dataToUpdate: any = {};
-    if (note !== undefined) dataToUpdate.note = note;
+    if (toc !== undefined) dataToUpdate.toc = toc;
+    
+    if (scrapeToc) {
+      const existingBook = await prisma.book.findUnique({
+        where: { id: resolvedParams.id },
+        select: { isbn: true }
+      });
+      if (existingBook?.isbn) {
+        console.log(`Dynamic scraping TOC for ISBN: ${existingBook.isbn}`);
+        const scrapedToc = await fetchTOCFromAladin(existingBook.isbn);
+        if (scrapedToc) {
+          dataToUpdate.toc = scrapedToc;
+        }
+      }
+    }
     
     if (categoryIds !== undefined) {
       dataToUpdate.categories = {
