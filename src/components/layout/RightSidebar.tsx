@@ -10,8 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CategoryBadge } from '@/components/category/CategoryBadge';
 import { toast } from 'sonner';
-import { X, ExternalLink, Trash2, Save } from 'lucide-react';
+import { X, ExternalLink, Trash2, Save, PanelRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function RightSidebar() {
   const queryClient = useQueryClient();
@@ -19,6 +24,7 @@ export function RightSidebar() {
   
   const { 
     isRightSidebarOpen, 
+    toggleRightSidebar,
     selectedBookForSidebar, 
     setSelectedBookForSidebar,
     setRightSidebarOpen
@@ -46,8 +52,33 @@ export function RightSidebar() {
         "shrink-0 hidden md:block transition-all duration-300 ease-in-out overflow-hidden border-l bg-white",
         isRightSidebarOpen ? "w-80" : "w-0 border-l-0"
       )}>
-        <div className="w-80 h-full flex flex-col items-center justify-center p-6 text-center text-slate-400 text-sm">
-          선택된 도서가 없습니다.
+        <div className="w-80 h-full flex flex-col">
+          {/* 상단 헤더 */}
+          <div className="p-4 border-b flex items-center justify-between bg-slate-50/50">
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={toggleRightSidebar}
+                      className="h-7 w-7 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 rounded-md"
+                    />
+                  }
+                >
+                  <PanelRight className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent side="left" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
+                  상세 패널 접기
+                </TooltipContent>
+              </Tooltip>
+              <h3 className="font-semibold text-slate-800 text-sm">상세 정보</h3>
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400 text-sm">
+            선택된 도서가 없습니다.
+          </div>
         </div>
       </aside>
     );
@@ -122,7 +153,26 @@ export function RightSidebar() {
       <div className="w-80 h-full flex flex-col">
         {/* 상단 헤더 */}
         <div className="p-4 border-b flex items-center justify-between bg-slate-50/50">
-          <h3 className="font-semibold text-slate-800 text-sm">상세 정보</h3>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleRightSidebar}
+                    className="h-7 w-7 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 rounded-md"
+                  />
+                }
+              >
+                <PanelRight className="h-4 w-4" />
+              </TooltipTrigger>
+              <TooltipContent side="left" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
+                상세 패널 접기
+              </TooltipContent>
+            </Tooltip>
+            <h3 className="font-semibold text-slate-800 text-sm">상세 정보</h3>
+          </div>
           <Button variant="ghost" size="icon" onClick={() => setSelectedBookForSidebar(null)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
             <X className="w-4 h-4" />
           </Button>

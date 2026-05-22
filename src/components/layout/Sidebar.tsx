@@ -7,10 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Settings, ChevronDown, ChevronRight,
-  Library, BookMarked
+  Library, BookMarked, PanelLeft
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const GROUP_LABELS: Record<string, string> = {
   market: '시장 유형',
@@ -22,7 +27,7 @@ export function Sidebar({ className }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: categories, isLoading } = useCategories();
-  const { selectedCategories, toggleCategory, clearCategories, isLeftSidebarOpen } = useUiStore();
+  const { selectedCategories, toggleCategory, clearCategories, isLeftSidebarOpen, toggleLeftSidebar } = useUiStore();
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     market: true,
@@ -70,6 +75,30 @@ export function Sidebar({ className }: { className?: string }) {
       {/* 내부 콘텐츠의 고정폭을 보장하여 찌그러짐 현상 방지 */}
       <div className="w-[230px] flex flex-col h-full min-h-0">
         
+        {/* ── 최상단 헤더 및 접기 버튼 ── */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            카테고리 필터
+          </span>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={toggleLeftSidebar}
+                  className="h-7 w-7 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+                />
+              }
+            >
+              <PanelLeft className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
+              사이드바 접기
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
         {/* ── 내 서재 홈 버튼 ── */}
         <button
           onClick={() => {
@@ -102,7 +131,7 @@ export function Sidebar({ className }: { className?: string }) {
         {/* ── 필터 헤더 ── */}
         <div className="flex items-center justify-between px-1 mb-2">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            분류 필터
+            분류 목록
           </span>
           {totalSelected > 0 && (
             <button
