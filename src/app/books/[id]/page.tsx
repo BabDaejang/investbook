@@ -23,6 +23,13 @@ const GROUP_LABELS: Record<string, string> = {
   level: '경험 수준',
 };
 
+const formatDate = (dateStr: any) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+};
+
 function formatTOC(toc: string): string {
   if (!toc) return '';
   
@@ -299,7 +306,12 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const authors = typeof book.authors === 'string' ? JSON.parse(book.authors) : book.authors;
+  let authors: string[] = [];
+  try {
+    authors = typeof book.authors === 'string' ? JSON.parse(book.authors) : (Array.isArray(book.authors) ? book.authors : []);
+  } catch (e) {
+    authors = typeof book.authors === 'string' && book.authors ? [book.authors] : [];
+  }
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden bg-slate-50">
@@ -472,7 +484,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                                   <div className="flex items-center gap-1.5 text-xs">
                                     <span className="font-semibold text-slate-800">{cNote.curator || '이름 없음'}</span>
                                     <span className="text-[10px] text-slate-400">
-                                      | {new Date(cNote.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                                      | {formatDate(cNote.createdAt)}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

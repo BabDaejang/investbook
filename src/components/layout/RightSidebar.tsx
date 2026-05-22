@@ -53,7 +53,12 @@ export function RightSidebar() {
   }
 
   const book = selectedBookForSidebar;
-  const authors = typeof book.authors === 'string' ? JSON.parse(book.authors) : book.authors;
+  let authors: string[] = [];
+  try {
+    authors = typeof book.authors === 'string' ? JSON.parse(book.authors) : (Array.isArray(book.authors) ? book.authors : []);
+  } catch (e) {
+    authors = typeof book.authors === 'string' && book.authors ? [book.authors] : [];
+  }
 
   // 수정 Mutation
   const updateMutation = useMutation({
