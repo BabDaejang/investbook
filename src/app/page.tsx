@@ -8,13 +8,7 @@ import { useBooks } from '@/hooks/useBooks';
 import { useUiStore } from '@/store/uiStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export default function Home() {
   const { 
@@ -38,31 +32,7 @@ export default function Home() {
       <Header />
       <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 py-8 overflow-hidden">
         {/* 전체 높이를 고정하여 스크롤 독립성을 보장 */}
-        <div className="flex w-full gap-4 overflow-hidden h-[calc(100vh-8rem)] relative">
-          
-          {/* 왼쪽 사이드바가 닫혀있을 때 화면 왼쪽 가장자리에 노출되는 펼치기 버튼 */}
-          {!isLeftSidebarOpen && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleLeftSidebar}
-                      className="h-12 w-4 bg-white border border-l-0 border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-400 rounded-r-lg shadow-sm flex items-center justify-center transition-colors"
-                    />
-                  }
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
-                  카테고리 펼치기
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-
+        <div className="flex w-full gap-4 overflow-hidden h-[calc(100vh-8rem)]">
           <Sidebar />
           
           <main className="flex-1 flex flex-col min-w-0 bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 overflow-y-auto">
@@ -88,29 +58,6 @@ export default function Home() {
             </div>
           </main>
           
-          {/* 오른쪽 사이드바가 닫혀있고 선택된 도서가 있을 때만 노출되는 가장자리 펼치기 버튼 */}
-          {!isRightSidebarOpen && selectedBookForSidebar && (
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-20">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleRightSidebar}
-                      className="h-12 w-4 bg-white border border-r-0 border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-400 rounded-l-lg shadow-sm flex items-center justify-center transition-colors"
-                    />
-                  }
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </TooltipTrigger>
-                <TooltipContent side="left" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
-                  상세 패널 펼치기
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-
           <RightSidebar />
         </div>
       </div>
