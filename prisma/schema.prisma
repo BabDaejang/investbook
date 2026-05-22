@@ -22,13 +22,25 @@ model Book {
   naverUrl      String?  // 네이버 도서 페이지 URL
 
   // 큐레이션 데이터
-  note          String?  // 큐레이터 메모
+  toc           String?  // 도서 목차
   isPublished   Boolean  @default(true)
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   categories    BookCategory[]
+  curationNotes CurationNote[]
+}
+
+model CurationNote {
+  id        String   @id @default(cuid())
+  bookId    String
+  curator   String   // 추천자 이름
+  note      String   // 메모 내용
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model Category {

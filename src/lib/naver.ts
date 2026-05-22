@@ -51,10 +51,18 @@ export async function searchBooks(query: string): Promise<NormalizedBook[]> {
 
 function getMockBooks(query: string): NormalizedBook[] {
   const match = query.toLowerCase();
-  return MOCK_BOOKS.filter(b => 
+  const results = MOCK_BOOKS.filter(b => 
     b.title.toLowerCase().includes(match) || 
     b.authors.some(a => a.toLowerCase().includes(match))
-  ).slice(0, 12);
+  );
+  
+  // 목업 데이터에 정확히 일치하는 검색어가 없더라도, 
+  // UI 테스트가 가능하도록 기본적으로 3권 정도를 임의로 보여줍니다.
+  if (results.length === 0) {
+    return MOCK_BOOKS.slice(0, 3);
+  }
+  
+  return results.slice(0, 12);
 }
 
 const MOCK_BOOKS: NormalizedBook[] = [
