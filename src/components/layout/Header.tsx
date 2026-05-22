@@ -2,16 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { BookOpen, Search, Settings, Library, PanelLeft, PanelRight } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { BookOpen, Search, Settings, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUiStore } from '@/store/uiStore';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 function HeaderSearch() {
   const router = useRouter();
@@ -56,17 +51,7 @@ function HeaderSearch() {
 
 export function Header() {
   const router = useRouter();
-  const pathname = usePathname();
-  const isHome = pathname === '/';
-  
-  const { 
-    isLeftSidebarOpen, 
-    isRightSidebarOpen, 
-    toggleLeftSidebar, 
-    toggleRightSidebar,
-    selectedBookForSidebar,
-    clearCategories
-  } = useUiStore();
+  const { clearCategories } = useUiStore();
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -77,27 +62,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center px-4 mx-auto w-full max-w-7xl justify-between gap-4">
-        {/* Left Section: Sidebar Toggle & Logo */}
+        {/* Left Section: Logo */}
         <div className="flex items-center space-x-3 shrink-0">
-          {isHome && (
-            <Tooltip>
-              <TooltipTrigger 
-                render={
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleLeftSidebar}
-                    className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 hidden md:flex h-9 w-9 rounded-lg transition-colors" 
-                  />
-                }
-              >
-                <PanelLeft className="h-5 w-5" />
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
-                왼쪽 사이드바 토글
-              </TooltipContent>
-            </Tooltip>
-          )}
           <a href="/" onClick={handleLogoClick} className="flex items-center space-x-2 shrink-0">
             <BookOpen className="h-6 w-6 text-blue-600" />
             <span className="font-bold text-sm tracking-tight hidden lg:inline-block">세종 금융경제교육 교사연구회 도서 탐색기</span>
@@ -110,7 +76,7 @@ export function Header() {
           <HeaderSearch />
         </Suspense>
 
-        {/* Navigation & Right Sidebar Toggle */}
+        {/* Navigation */}
         <div className="flex items-center space-x-2 shrink-0">
           <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1.5" onClick={handleLogoClick}>
             <Library className="h-4 w-4" />
@@ -122,27 +88,6 @@ export function Header() {
               <span className="hidden md:inline">분류 관리</span>
             </Button>
           </Link>
-          
-          {isHome && (
-            <Tooltip>
-              <TooltipTrigger 
-                render={
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleRightSidebar}
-                    disabled={!selectedBookForSidebar}
-                    className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none hidden md:flex h-9 w-9 rounded-lg transition-colors" 
-                  />
-                }
-              >
-                <PanelRight className="h-5 w-5" />
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs bg-slate-900 text-white rounded px-2 py-1 shadow-md">
-                오른쪽 상세 패널 토글
-              </TooltipContent>
-            </Tooltip>
-          )}
         </div>
       </div>
     </header>
