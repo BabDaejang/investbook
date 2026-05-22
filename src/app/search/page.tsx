@@ -60,7 +60,7 @@ export default function SearchPage() {
             <BookSearchResult 
               key={book.isbn13 || book.title} 
               book={book} 
-              isSaved={savedIsbnList.includes(book.isbn13)}
+              isSaved={!!book.isbn13 && savedIsbnList.includes(book.isbn13)}
               onClick={setSelectedBook}
             />
           ))}

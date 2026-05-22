@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,14 @@ export function BookDetailPanel({ book, isOpen, onClose }: BookDetailPanelProps)
   
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [note, setNote] = useState('');
+
+  // 패널이 열리거나 대상 도서가 변경될 때 선택 값 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIds([]);
+      setNote('');
+    }
+  }, [isOpen, book]);
 
   if (!book) return null;
 
