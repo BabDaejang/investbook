@@ -530,19 +530,6 @@ function SearchContent() {
             </div>
           )}
         </aside>
-              onClick={setSelectedBook}
-            />
-          ))}
-        </div>
-      </main>
-
-      <BookDetailPanel 
-        book={selectedBook} 
-        isOpen={!!selectedBook} 
-        onClose={() => setSelectedBook(null)} 
-      />
-    </>
-=======
       </div>
     </div>
   );
@@ -560,6 +547,6 @@ export default function SearchPage() {
     }>
       <SearchContent />
     </Suspense>
->>>>>>> 60c14e40379cc13d1b703dd4b4ef54261cf2e2e6
+
   );
 }
