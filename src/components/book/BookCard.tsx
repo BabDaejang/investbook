@@ -23,18 +23,18 @@ export function BookCard({ book }: BookCardProps) {
   const isSelected = selectedBookForSidebar?.id === book.id;
 
   return (
-    <Tooltip>
-      <TooltipTrigger 
-        render={
-          <div 
-            onClick={() => setSelectedBookForSidebar(book)} 
-            className={`group flex flex-col gap-2 rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all p-3 h-full cursor-pointer ${
-              isSelected ? 'ring-2 ring-blue-500 border-transparent bg-blue-50/10' : 'hover:border-slate-300'
-            }`} 
-          />
-        }
-      >
-        <div className="relative w-full aspect-[3/4] overflow-hidden rounded-md bg-slate-100">
+    <div 
+      onClick={() => setSelectedBookForSidebar(book)} 
+      className={`group flex flex-col gap-2 rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all p-3 h-full cursor-pointer ${
+        isSelected ? 'ring-2 ring-blue-500 border-transparent bg-blue-50/10' : 'hover:border-slate-300'
+      }`}
+    >
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <div className="relative w-full aspect-[3/4] overflow-hidden rounded-md bg-slate-100" />
+          }
+        >
           {book.thumbnail ? (
             <Image 
               src={book.thumbnail} 
@@ -48,35 +48,35 @@ export function BookCard({ book }: BookCardProps) {
               No Image
             </div>
           )}
-        </div>
+        </TooltipTrigger>
+        {book.description && (
+          <TooltipContent side="right" className="max-w-[280px] p-4 text-xs leading-relaxed z-50 bg-slate-900 text-white rounded shadow-lg">
+            {book.description.length > 150 
+              ? `${book.description.substring(0, 150)}...` 
+              : book.description}
+          </TooltipContent>
+        )}
+      </Tooltip>
+      
+      <div className="flex flex-col flex-1 gap-1">
+        <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors text-slate-800">
+          {book.title}
+        </h3>
+        <p className="text-xs text-slate-500 line-clamp-1">
+          {authors?.join(', ')}
+        </p>
         
-        <div className="flex flex-col flex-1 gap-1">
-          <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors text-slate-800">
-            {book.title}
-          </h3>
-          <p className="text-xs text-slate-500 line-clamp-1">
-            {authors?.join(', ')}
-          </p>
-          
-          <div className="mt-auto pt-2 flex flex-wrap gap-1">
-            {displayCategories.map((c: any) => (
-              <CategoryBadge key={c.id} category={c} className="text-[9px] px-1.5 py-0.5" />
-            ))}
-            {extraCategories > 0 && (
-              <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 rounded-full flex items-center">
-                +{extraCategories}
-              </span>
-            )}
-          </div>
+        <div className="mt-auto pt-2 flex flex-wrap gap-1">
+          {displayCategories.map((c: any) => (
+            <CategoryBadge key={c.id} category={c} className="text-[9px] px-1.5 py-0.5" />
+          ))}
+          {extraCategories > 0 && (
+            <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 rounded-full flex items-center">
+              +{extraCategories}
+            </span>
+          )}
         </div>
-      </TooltipTrigger>
-      {book.description && (
-        <TooltipContent side="right" className="max-w-[280px] p-4 text-xs leading-relaxed z-50 bg-slate-900 text-white rounded shadow-lg">
-          {book.description.length > 150 
-            ? `${book.description.substring(0, 150)}...` 
-            : book.description}
-        </TooltipContent>
-      )}
-    </Tooltip>
+      </div>
+    </div>
   );
 }
