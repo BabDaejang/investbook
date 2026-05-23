@@ -2,39 +2,30 @@
 
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { RightSidebar } from '@/components/layout/RightSidebar';
 import { BookGrid } from '@/components/book/BookGrid';
 import { useBooks } from '@/hooks/useBooks';
 import { useUiStore } from '@/store/uiStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 export default function Home() {
-  const { 
-    selectedCategories, 
-    sortBy, 
+  const {
+    selectedCategories,
+    sortBy,
     setSortBy,
-    isLeftSidebarOpen, 
-    isRightSidebarOpen, 
-    toggleLeftSidebar, 
-    toggleRightSidebar,
-    selectedBookForSidebar
   } = useUiStore();
 
-  const { data: books, isLoading } = useBooks({ 
-    categoryIds: selectedCategories, 
-    sort: sortBy 
+  const { data: books, isLoading } = useBooks({
+    categoryIds: selectedCategories,
+    sort: sortBy
   });
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
       <Header />
       <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 py-8 overflow-hidden">
-        {/* 전체 높이를 고정하여 스크롤 독립성을 보장 */}
         <div className="flex w-full gap-4 overflow-hidden h-[calc(100vh-8rem)]">
           <Sidebar />
-          
+
           <main className="flex-1 flex flex-col min-w-0 bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-xl font-bold tracking-tight text-slate-800">연구회 서재</h1>
@@ -52,13 +43,11 @@ export default function Home() {
                 </Select>
               </div>
             </div>
-            
+
             <div className="flex-1">
               <BookGrid books={books || []} isLoading={isLoading} />
             </div>
           </main>
-          
-          <RightSidebar />
         </div>
       </div>
     </div>
