@@ -3,8 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Header } from '@/components/layout/Header';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { AppShell } from '@/components/layout/AppShell';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -195,16 +194,9 @@ function SearchContent() {
   };
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden bg-slate-50">
-      <Header />
-      
-      {/* 3-Column Workspace Layout */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Column 1: 분류하기 Panel (Left) */}
-        <Sidebar className="w-64 shrink-0 bg-white border-r px-4 py-5 z-10 shadow-sm min-h-0" />
-
-        {/* Column 2: 검색 결과 Panel (Center) */}
-        <main className="flex-1 flex flex-col bg-slate-50/50 min-w-0 min-h-0">
+    <AppShell>
+      {/* Column 2: 검색 결과 Panel (Center) */}
+      <main className="flex-1 flex flex-col bg-slate-50/50 min-w-0 min-h-0">
           {/* Always Visible Search Bar */}
           <div className="p-4 border-b bg-white flex flex-col gap-2">
             <form onSubmit={handleSearch} className="flex gap-2 max-w-xl">
@@ -536,8 +528,7 @@ function SearchContent() {
             </div>
           )}
         </aside>
-      </div>
-    </div>
+    </AppShell>
   );
 }
 
