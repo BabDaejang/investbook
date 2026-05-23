@@ -19,7 +19,12 @@ export function BookCard({ book }: BookCardProps) {
   const displayCategories = categories.slice(0, 3);
   const extraCategories = categories.length - 3;
   
-  const authors = typeof book.authors === 'string' ? JSON.parse(book.authors) : book.authors;
+  let authors: string[] = [];
+  try {
+    authors = typeof book.authors === 'string' ? JSON.parse(book.authors) : (Array.isArray(book.authors) ? book.authors : []);
+  } catch (e) {
+    authors = typeof book.authors === 'string' && book.authors ? [book.authors] : [];
+  }
   const isSelected = selectedBookForSidebar?.id === book.id;
 
   return (

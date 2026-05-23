@@ -318,10 +318,16 @@ function SearchContent() {
                 ) : (
                   filteredSavedBooks?.map((book: any) => {
                     // Match with book interface
+                    let parsedAuthors: string[] = [];
+                    try {
+                      parsedAuthors = typeof book.authors === 'string' ? JSON.parse(book.authors) : (Array.isArray(book.authors) ? book.authors : []);
+                    } catch (e) {
+                      parsedAuthors = typeof book.authors === 'string' && book.authors ? [book.authors] : [];
+                    }
                     const normalizedBook = {
                       isbn13: book.isbn,
                       title: book.title,
-                      authors: typeof book.authors === 'string' ? JSON.parse(book.authors) : book.authors,
+                      authors: parsedAuthors,
                       publisher: book.publisher,
                       publishedDate: book.publishedDate,
                       thumbnail: book.thumbnail,

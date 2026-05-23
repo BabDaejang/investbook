@@ -80,6 +80,12 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
   const { data: book, isLoading } = useBookDetail(resolvedParams.id);
   const { data: allCategories } = useCategories();
+  
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const updateBookMutation = useUpdateBook();
   const deleteBookMutation = useDeleteBook();
   const addCurationNoteMutation = useAddCurationNote();
@@ -484,7 +490,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                                   <div className="flex items-center gap-1.5 text-xs">
                                     <span className="font-semibold text-slate-800">{cNote.curator || '이름 없음'}</span>
                                     <span className="text-[10px] text-slate-400">
-                                      | {formatDate(cNote.createdAt)}
+                                      | {isMounted ? formatDate(cNote.createdAt) : ''}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
