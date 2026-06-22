@@ -308,6 +308,117 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     });
   };
 
+  const renderCurationPanel = (isMobile = false) => {
+    return (
+      <div className={`flex flex-col min-h-0 ${isMobile ? '' : 'h-full bg-white'}`}>
+        {/* 헤더 */}
+        <div className={`p-4 border-b bg-slate-50/50 flex items-center gap-2 shrink-0 ${isMobile ? 'rounded-t-2xl' : ''}`}>
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span className="font-semibold text-sm text-slate-700">큐레이션 편집</span>
+        </div>
+
+        {/* 편집 내용 */}
+        <div className="p-5 space-y-6 overflow-y-auto min-h-0 flex-1">
+          {/* 분류 지정 */}
+          <div className="space-y-3">
+            <span className="font-semibold text-xs text-slate-500 block">분류 지정</span>
+            <div className="space-y-4">
+              {Object.entries(GROUP_LABELS).map(([groupKey, groupLabel]) => {
+                const list = groupedCategories[groupKey as keyof typeof groupedCategories];
+                if (!list || list.length === 0) return null;
+                return (
+                  <div key={groupKey} className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{groupLabel}</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {list.map((cat: any) => {
+                        const isAssigned = selectedCategoryIds.includes(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => handleToggleCategory(cat.id)}
+                            className={`text-[11px] px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 font-medium ${
+                              isAssigned
+                                ? 'text-white border-transparent shadow-sm'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-350 hover:bg-slate-50'
+                            }`}
+                            style={isAssigned ? { backgroundColor: cat.color, borderColor: cat.color } : {}}
+                          >
+                            {isAssigned && <Check className="w-3 h-3" />}
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 큐레이션 동작 버튼 */}
+          <div className="space-y-4 border-t pt-5">
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                onClick={handleSaveNote}
+                disabled={isSaving || updateBookMutation.isPending}
+                className="w-full h-11 text-sm font-semibold bg-slate-800 hover:bg-slate-700"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                변경사항 저장
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                className="w-full h-11 text-sm font-medium hover:bg-slate-50"
+              >
+                이전 화면
+              </Button>
+
+              {isAdmin ? (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (confirm('서재에서 삭제하는 경우 서재에서 정보가 사라집니다. 정말로 삭제하시겠습니까?')) {
+                      handleDelete();
+                    }
+                  }}
+                  disabled={deleteBookMutation.isPending}
+                  className="w-full h-11 text-sm text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> 서재에서 삭제 (관리자)
+                </Button>
+              ) : (
+                <div className="flex gap-2 items-center w-full mt-1">
+                  <Input
+                    type="password"
+                    placeholder="삭제 비밀번호"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    className="h-11 text-xs bg-slate-50 border-slate-200 flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDelete}
+                    disabled={deleteBookMutation.isPending || !deletePassword}
+                    className="h-11 text-xs text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium shrink-0"
+                  >
+                    {deleteBookMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-1" />
+                    )}
+                    삭제
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // 로딩 상태
   if (isLoading) {
     return (
@@ -644,10 +755,17 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
           </div>
-      </main>
+          {/* 모바일 화면용 하단 큐레이션 패널 */}
+          <div className="lg:hidden mt-8 border-t pt-6 bg-white p-5 rounded-2xl border shadow-sm">
+            {renderCurationPanel(true)}
+          </div>
+        </main>
 
-      {/* 우측: 큐레이션 편집 패널 */}
+      {/* 우측: 큐레이션 편집 패널 (데스크톱용) */}
       <aside className="w-80 shrink-0 bg-white border-l flex flex-col min-h-0 shadow-sm hidden lg:flex">
+        {renderCurationPanel(false)}
+      </aside>
+      <div className="hidden">
         {/* 헤더 */}
         <div className="p-4 border-b bg-slate-50/50 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-500" />
@@ -752,7 +870,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
         </div>
-      </aside>
+      </div>
 
       <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
         <DialogContent className="max-w-xs p-5">
