@@ -3,10 +3,20 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen, Search, Settings, Library } from 'lucide-react';
+import { BookOpen, Search, Settings, Library, Shield, ShieldAlert, KeyRound, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUiStore } from '@/store/uiStore';
+import { useAdminStatus, useAdminLogin, useAdminLogout } from '@/hooks/useAdmin';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from 'sonner';
 
 function HeaderSearch() {
   const router = useRouter();
@@ -53,10 +63,41 @@ export function Header() {
   const router = useRouter();
   const { clearCategories } = useUiStore();
 
+  const { data: adminData } = useAdminStatus();
+  const logoutMutation = useAdminLogout();
+  const loginMutation = useAdminLogin();
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [adminPasswordInput, setAdminPasswordInput] = useState('');
+
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     clearCategories();
     router.push('/');
+  };
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminPasswordInput.trim()) return;
+
+    loginMutation.mutate(adminPasswordInput, {
+      onSuccess: () => {
+        toast.success('관리자 로그인 성공');
+        setIsLoginModalOpen(false);
+        setAdminPasswordInput('');
+      },
+      onError: (err: any) => {
+        toast.error(err.message || '관리자 로그인 실패');
+      }
+    });
+  };
+
+  const handleAdminLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success('관리자 로그아웃 완료');
+      }
+    });
   };
 
   return (
@@ -88,8 +129,81 @@ export function Header() {
               <span className="hidden md:inline">분류 관리</span>
             </Button>
           </Link>
+
+          {adminData?.isAdmin ? (
+            <>
+              <span className="hidden md:inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold">
+                <Shield className="h-3.5 w-3.5 text-blue-600" />
+                관리자
+              </span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleAdminLogout}
+                disabled={logoutMutation.isPending}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 text-xs gap-1.5"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden md:inline">로그아웃</span>
+              </Button>
+            </>
+          ) : (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsLoginModalOpen(true)}
+              className="text-slate-500 hover:text-slate-800 text-xs gap-1.5"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span className="hidden md:inline">관리자 로그인</span>
+            </Button>
+          )}
         </div>
       </div>
+
+      <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
+        <DialogContent className="max-w-xs p-5">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold flex items-center gap-1.5">
+              <ShieldAlert className="h-4 w-4 text-blue-600" />
+              관리자 모드 로그인
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              도서 삭제 권한이 부여되는 관리자 패스워드를 입력해 주세요.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAdminLogin} className="space-y-3.5 pt-1">
+            <Input
+              type="password"
+              placeholder="관리자 비밀번호"
+              value={adminPasswordInput}
+              onChange={(e) => setAdminPasswordInput(e.target.value)}
+              className="h-9 text-xs bg-slate-50 border-slate-200"
+              autoFocus
+            />
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsLoginModalOpen(false);
+                  setAdminPasswordInput('');
+                }}
+                className="h-8 text-xs w-full sm:w-auto"
+              >
+                취소
+              </Button>
+              <Button
+                type="submit"
+                disabled={loginMutation.isPending}
+                className="h-8 text-xs w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white"
+              >
+                {loginMutation.isPending ? '로그인 중...' : '로그인'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

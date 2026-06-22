@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { isbn13, title, authors, publisher, publishedDate, description, thumbnail, naverUrl, categoryIds, note, curator, toc } = body;
+    const { isbn13, title, authors, publisher, publishedDate, description, thumbnail, naverUrl, categoryIds, note, curator, toc, password } = body;
 
     // 알라딘에서 목차(TOC) 정보 자동 스크래핑 시도
     let finalToc = toc;
@@ -68,6 +68,7 @@ export async function POST(request: Request) {
         thumbnail,
         naverUrl,
         toc: finalToc,
+        password: password || '0000',
         categories: {
           create: (categoryIds || []).map((id: string) => ({
             category: { connect: { id } }

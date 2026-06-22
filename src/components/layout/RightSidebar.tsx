@@ -7,16 +7,26 @@ import { useCategories } from '@/hooks/useCategories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CategoryBadge } from '@/components/category/CategoryBadge';
 import { toast } from 'sonner';
-import { X, ExternalLink, Trash2, Save, PanelRight, ChevronLeft } from 'lucide-react';
+import { X, ExternalLink, Trash2, Save, PanelRight, ChevronLeft, ShieldAlert, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAdminStatus } from '@/hooks/useAdmin';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function RightSidebar() {
   const queryClient = useQueryClient();
@@ -31,8 +41,14 @@ export function RightSidebar() {
   } = useUiStore();
 
   // ── 모든 useState / useEffect / useMutation은 조건문(early return) 위에 선언해야 함 ──
+  const { data: adminData } = useAdminStatus();
+  const isAdmin = !!adminData?.isAdmin;
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [note, setNote] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
 
   // 수정 Mutation
   const updateMutation = useMutation({
@@ -57,20 +73,39 @@ export function RightSidebar() {
 
   // 삭제 Mutation
   const deleteMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (password?: string) => {
+      const headers: Record<string, string> = {};
+      if (password) {
+        headers['x-book-password'] = password;
+      }
       const res = await fetch(`/api/books/${selectedBookForSidebar?.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers
       });
-      if (!res.ok) throw new Error('Failed to delete book');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete book');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
       setSelectedBookForSidebar(null);
       setRightSidebarOpen(false);
+      setDeletePassword('');
       toast.success('서재에서 도서가 삭제되었습니다.');
     },
-    onError: () => {
-      toast.error('도서 삭제에 실패했습니다.');
+    onError: (err: any) => {
+      if (
+        err.message?.includes('비밀번호') || 
+        err.message?.includes('password') || 
+        err.message?.includes('Unauthorized') || 
+        err.message?.includes('Forbidden')
+      ) {
+        setDeleteErrorMessage('입력하신 삭제 비밀번호가 일치하지 않습니다.');
+        setIsErrorModalOpen(true);
+      } else {
+        toast.error(err.message || '도서 삭제에 실패했습니다.');
+      }
     }
   });
 
@@ -84,6 +119,7 @@ export function RightSidebar() {
       setSelectedIds([]);
       setNote('');
     }
+    setDeletePassword('');
   }, [selectedBookForSidebar]);
 
   // ── early return: 선택된 책 없으면 빈 패널 반환 ──
@@ -116,9 +152,7 @@ export function RightSidebar() {
   };
 
   const handleDelete = () => {
-    if (confirm('이 도서를 서재에서 삭제하시겠습니까?')) {
-      deleteMutation.mutate();
-    }
+    deleteMutation.mutate(isAdmin ? undefined : deletePassword);
   };
 
   return (
@@ -226,9 +260,29 @@ export function RightSidebar() {
 
           {/* 하단 제어 바 */}
           <div className="p-3 border-t bg-slate-50 flex items-center justify-between gap-2 shrink-0">
-            <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleteMutation.isPending} className="text-red-500 hover:text-red-700 hover:bg-red-50 h-9 rounded-lg">
-              <Trash2 className="w-4 h-4 mr-1.5" /> 삭제
-            </Button>
+            {isAdmin ? (
+              <Button variant="ghost" size="sm" onClick={() => {
+                if (confirm('이 도서를 서재에서 삭제하시겠습니까?')) {
+                  handleDelete();
+                }
+              }} disabled={deleteMutation.isPending} className="text-red-500 hover:text-red-700 hover:bg-red-50 h-9 rounded-lg">
+                <Trash2 className="w-4 h-4 mr-1.5" /> 삭제
+              </Button>
+            ) : (
+              <div className="flex gap-1.5 items-center">
+                <Input
+                  type="password"
+                  placeholder="비밀번호"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="h-8 text-[11px] bg-slate-50 border-slate-200 w-20 px-2 rounded-md"
+                />
+                <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleteMutation.isPending || !deletePassword} className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 text-[11px] px-2 rounded-md shrink-0">
+                  {deleteMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5 mr-1" />}
+                  삭제
+                </Button>
+              </div>
+            )}
 
             <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
               <Save className="w-4 h-4 mr-1.5" /> 저장
@@ -257,6 +311,28 @@ export function RightSidebar() {
           </Tooltip>
         </div>
       )}
+
+      <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+        <DialogContent className="max-w-xs p-5">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold flex items-center gap-1.5 text-red-650">
+              <ShieldAlert className="h-4 w-4 text-red-500" />
+              삭제 권한 오류
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              {deleteErrorMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setIsErrorModalOpen(false)}
+              className="h-8 text-xs w-full bg-slate-900 hover:bg-slate-800 text-white"
+            >
+              확인
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }

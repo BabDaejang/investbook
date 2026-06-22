@@ -13,8 +13,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ExternalLink, Trash2, Save, Sparkles, BookOpen,
-  Check, Loader2
+  Check, Loader2, ShieldAlert
 } from 'lucide-react';
+import { useAdminStatus } from '@/hooks/useAdmin';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const GROUP_LABELS: Record<string, string> = {
   market: '시장 유형',
@@ -76,6 +85,13 @@ function formatTOC(toc: string): string {
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+
+  const { data: adminData } = useAdminStatus();
+  const isAdmin = !!adminData?.isAdmin;
+
+  const [deletePassword, setDeletePassword] = useState('');
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
 
   const { data: book, isLoading } = useBookDetail(resolvedParams.id);
   const { data: allCategories } = useCategories();
@@ -268,13 +284,27 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
   // 도서 삭제
   const handleDelete = () => {
-    if (!confirm('서재에서 삭제하는 경우 서재에서 정보가 사라집니다. 정말로 삭제하시겠습니까?')) return;
-    deleteBookMutation.mutate(resolvedParams.id, {
+    deleteBookMutation.mutate({
+      id: resolvedParams.id,
+      password: isAdmin ? undefined : deletePassword
+    }, {
       onSuccess: () => {
         toast.success('서재에서 삭제되었습니다.');
-        router.back();
+        router.push('/');
       },
-      onError: () => toast.error('삭제에 실패했습니다.'),
+      onError: (err: any) => {
+        if (
+          err.message?.includes('비밀번호') || 
+          err.message?.includes('password') || 
+          err.message?.includes('Unauthorized') || 
+          err.message?.includes('Forbidden')
+        ) {
+          setDeleteErrorMessage('입력하신 삭제 비밀번호가 일치하지 않습니다.');
+          setIsErrorModalOpen(true);
+        } else {
+          toast.error(err.message || '삭제에 실패했습니다.');
+        }
+      },
     });
   };
 
@@ -682,18 +712,69 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 이전 화면
               </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleDelete}
-                disabled={deleteBookMutation.isPending}
-                className="w-full h-11 text-sm text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium"
-              >
-                <Trash2 className="w-4 h-4 mr-2" /> 서재에서 삭제
-              </Button>
+              {isAdmin ? (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (confirm('서재에서 삭제하는 경우 서재에서 정보가 사라집니다. 정말로 삭제하시겠습니까?')) {
+                      handleDelete();
+                    }
+                  }}
+                  disabled={deleteBookMutation.isPending}
+                  className="w-full h-11 text-sm text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> 서재에서 삭제 (관리자)
+                </Button>
+              ) : (
+                <div className="flex gap-2 items-center w-full mt-1">
+                  <Input
+                    type="password"
+                    placeholder="삭제 비밀번호"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    className="h-11 text-xs bg-slate-50 border-slate-200 flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDelete}
+                    disabled={deleteBookMutation.isPending || !deletePassword}
+                    className="h-11 text-xs text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium shrink-0"
+                  >
+                    {deleteBookMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-1" />
+                    )}
+                    삭제
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </aside>
+
+      <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+        <DialogContent className="max-w-xs p-5">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold flex items-center gap-1.5 text-red-600">
+              <ShieldAlert className="h-4 w-4 text-red-500" />
+              삭제 권한 오류
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              {deleteErrorMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setIsErrorModalOpen(false)}
+              className="h-8 text-xs w-full bg-slate-900 hover:bg-slate-800 text-white"
+            >
+              확인
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

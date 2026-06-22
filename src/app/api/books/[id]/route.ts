@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { fetchTOCFromAladin } from '@/lib/aladin';
+import { checkIsAdmin } from '@/lib/auth';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -74,7 +75,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
-    await prisma.book.delete({ where: { id: resolvedParams.id } });
+    const bookId = resolvedParams.id;
+
+    // 1. 관리자 여부 확인
+    const isAdmin = await checkIsAdmin();
+
+    if (!isAdmin) {
+      // 2. 일반 사용자일 경우 비밀번호 확인
+      const clientPassword = request.headers.get('x-book-password');
+      
+      const book = await prisma.book.findUnique({
+        where: { id: bookId },
+        select: { password: true }
+      });
+
+      if (!book) {
+        return NextResponse.json({ error: 'Book not found' }, { status: 404 });
+      }
+
+      if (!clientPassword || book.password !== clientPassword) {
+        return NextResponse.json({ error: '비밀번호가 일치하지 않습니다.' }, { status: 403 });
+      }
+    }
+
+    await prisma.book.delete({ where: { id: bookId } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(error);

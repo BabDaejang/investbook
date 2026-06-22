@@ -81,11 +81,21 @@ export function useUpdateBook() {
 export function useDeleteBook() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, password }: { id: string; password?: string }) => {
+      const headers: Record<string, string> = {};
+      if (password) {
+        headers['x-book-password'] = password;
+      }
+
       const res = await fetch(`/api/books/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers
       });
-      if (!res.ok) throw new Error('Failed to delete book');
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to delete book');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });

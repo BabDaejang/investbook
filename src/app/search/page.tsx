@@ -16,8 +16,17 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { 
   Search, Plus, Trash2, ExternalLink, BookOpen, 
-  Settings, Sparkles, Folder, Library, Check, Loader2, X 
+  Settings, Sparkles, Folder, Library, Check, Loader2, X, ShieldAlert 
 } from 'lucide-react';
+import { useAdminStatus } from '@/hooks/useAdmin';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const GROUP_LABELS = { 
   market: '시장 유형', 
@@ -29,6 +38,9 @@ function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const qParam = searchParams.get('q') || '';
+
+  const { data: adminData } = useAdminStatus();
+  const isAdmin = !!adminData?.isAdmin;
 
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
@@ -44,6 +56,12 @@ function SearchContent() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [toc, setToc] = useState('');
   const [attemptedScrapeIsbns, setAttemptedScrapeIsbns] = useState<string[]>([]);
+  const [newBookPassword, setNewBookPassword] = useState('0000');
+  const [deletePassword, setDeletePassword] = useState('');
+
+  // Error modal states
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
 
   const { selectedCategories, clearCategories } = useUiStore();
 
@@ -72,16 +90,21 @@ function SearchContent() {
     if (!selectedBook) {
       setSelectedCategoryIds([]);
       setToc('');
+      setNewBookPassword('0000');
+      setDeletePassword('');
       return;
     }
     const currentSaved = allSavedBooks?.find((b: any) => b.isbn === selectedBook.isbn13);
     if (currentSaved) {
       setSelectedCategoryIds(currentSaved.categories.map((bc: any) => bc.categoryId));
       setToc(currentSaved.toc || '');
+      setNewBookPassword(currentSaved.password || '11');
     } else {
       setSelectedCategoryIds([]);
       setToc('');
+      setNewBookPassword('0000');
     }
+    setDeletePassword('');
   }, [selectedBook, allSavedBooks]);
 
   // 이미 저장된 도서인데 목차가 없는 경우 자동으로 백그라운드에서 목차 수집
@@ -160,7 +183,8 @@ function SearchContent() {
       saveBookMutation.mutate({
         ...selectedBook,
         categoryIds: selectedCategoryIds,
-        toc
+        toc,
+        password: newBookPassword || '0000'
       }, {
         onSuccess: (newBook) => {
           toast.success('서재에 도서가 등록되었습니다.');
@@ -180,17 +204,30 @@ function SearchContent() {
   // Delete from Library
   const handleCurationDelete = () => {
     if (!isSaved || !savedBook) return;
-    if (confirm('서재에서 삭제하는 경우 서재에서 정보가 사라집니다. 정말로 삭제하시겠습니까?')) {
-      deleteBookMutation.mutate(savedBook.id, {
-        onSuccess: () => {
-          toast.success('서재에서 삭제되었습니다.');
-          setSelectedBook(null);
-        },
-        onError: () => {
-          toast.error('도서 삭제에 실패했습니다.');
+
+    deleteBookMutation.mutate({
+      id: savedBook.id,
+      password: isAdmin ? undefined : deletePassword
+    }, {
+      onSuccess: () => {
+        toast.success('서재에서 삭제되었습니다.');
+        setSelectedBook(null);
+        setDeletePassword('');
+      },
+      onError: (err: any) => {
+        if (
+          err.message?.includes('비밀번호') || 
+          err.message?.includes('password') || 
+          err.message?.includes('Unauthorized') || 
+          err.message?.includes('Forbidden')
+        ) {
+          setDeleteErrorMessage('입력하신 삭제 비밀번호가 일치하지 않습니다.');
+          setIsErrorModalOpen(true);
+        } else {
+          toast.error(err.message || '도서 삭제에 실패했습니다.');
         }
-      });
-    }
+      }
+    });
   };
 
   return (
@@ -450,6 +487,22 @@ function SearchContent() {
                     </Button>
                   </div>
 
+                  {/* 도서 추가 시 비밀번호 간단하게 설정 */}
+                  <div className="space-y-2 border-t pt-5">
+                    <span className="font-semibold text-xs text-slate-500 block">도서 비밀번호 설정</span>
+                    <Input
+                      type="text"
+                      placeholder="도서 비밀번호 (예: 0000)"
+                      value={newBookPassword}
+                      onChange={(e) => setNewBookPassword(e.target.value)}
+                      disabled={isSaved}
+                      className="h-9 text-xs bg-slate-50 border-slate-200"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      {isSaved ? '이미 등록된 도서의 비밀번호는 수정할 수 없습니다.' : '서재 등록 시 책을 삭제할 때 사용할 비밀번호입니다 (기본: 0000).'}
+                    </p>
+                  </div>
+
                   {/* Category Assignment badges (Clickable to assign) */}
                   <div className="space-y-3 border-t pt-5">
                     <span className="font-semibold text-xs text-slate-500 block">분류 지정</span>
@@ -512,14 +565,43 @@ function SearchContent() {
                       </Button>
 
                       {isSaved && (
-                        <Button 
-                          variant="outline" 
-                          onClick={handleCurationDelete}
-                          disabled={deleteBookMutation.isPending}
-                          className="w-full h-11 text-sm text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" /> 서재에서 삭제
-                        </Button>
+                        isAdmin ? (
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              if (confirm('서재에서 삭제하는 경우 서재에서 정보가 사라집니다. 정말로 삭제하시겠습니까?')) {
+                                handleCurationDelete();
+                              }
+                            }}
+                            disabled={deleteBookMutation.isPending}
+                            className="w-full h-11 text-sm text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" /> 서재에서 삭제 (관리자)
+                          </Button>
+                        ) : (
+                          <div className="flex gap-2 items-center w-full mt-1">
+                            <Input
+                              type="password"
+                              placeholder="삭제 비밀번호"
+                              value={deletePassword}
+                              onChange={(e) => setDeletePassword(e.target.value)}
+                              className="h-11 text-xs bg-slate-50 border-slate-200 flex-1"
+                            />
+                            <Button 
+                              variant="outline" 
+                              onClick={handleCurationDelete}
+                              disabled={deleteBookMutation.isPending || !deletePassword}
+                              className="h-11 text-xs text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-medium shrink-0"
+                            >
+                              {deleteBookMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4 mr-1" />
+                              )}
+                              삭제
+                            </Button>
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
@@ -528,6 +610,28 @@ function SearchContent() {
             </div>
           )}
         </aside>
+
+        <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+          <DialogContent className="max-w-xs p-5">
+            <DialogHeader>
+              <DialogTitle className="text-sm font-bold flex items-center gap-1.5 text-red-600">
+                <ShieldAlert className="h-4 w-4 text-red-500" />
+                삭제 권한 오류
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                {deleteErrorMessage}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                onClick={() => setIsErrorModalOpen(false)}
+                className="h-8 text-xs w-full bg-slate-900 hover:bg-slate-800 text-white"
+              >
+                확인
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
     </AppShell>
   );
 }
