@@ -107,8 +107,8 @@ export function Header() {
         <div className="flex items-center space-x-3 shrink-0">
           <a href="/" onClick={handleLogoClick} className="flex items-center space-x-2 shrink-0">
             <BookOpen className="h-6 w-6 text-blue-600" />
-            <span className="font-bold text-sm tracking-tight hidden lg:inline-block">세종 금융경제교육 교사연구회 도서 탐색기</span>
-            <span className="font-bold text-sm tracking-tight hidden sm:inline-block lg:hidden">도서 탐색기</span>
+            <span className="font-bold text-2xl tracking-tight hidden lg:inline-block">세종 금융경제교육 교사연구회 도서 탐색기</span>
+            <span className="font-bold text-2xl tracking-tight hidden sm:inline-block lg:hidden">도서 탐색기</span>
           </a>
         </div>
 
