@@ -55,7 +55,6 @@ function SearchContent() {
   // Right panel curation states
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [toc, setToc] = useState('');
-  const [attemptedScrapeIsbns, setAttemptedScrapeIsbns] = useState<string[]>([]);
   const [newBookPassword, setNewBookPassword] = useState('0000');
   const [deletePassword, setDeletePassword] = useState('');
 
@@ -107,27 +106,30 @@ function SearchContent() {
     setDeletePassword('');
   }, [selectedBook, allSavedBooks]);
 
-  // 이미 저장된 도서인데 목차가 없는 경우 자동으로 백그라운드에서 목차 수집
-  useEffect(() => {
-    if (isSaved && savedBook && !savedBook.toc && savedBook.isbn && !attemptedScrapeIsbns.includes(savedBook.isbn) && !updateBookMutation.isPending) {
-      setAttemptedScrapeIsbns(prev => [...prev, savedBook.isbn]);
-      console.log("Automatically scraping TOC in search page for book:", savedBook.id);
-      updateBookMutation.mutate(
-        {
-          id: savedBook.id,
-          data: { scrapeToc: true } as any
-        },
-        {
-          onSuccess: (updatedBook) => {
-            if (updatedBook.toc) {
-              setToc(updatedBook.toc);
-              toast.success('도서 목차가 자동으로 수집되었습니다.');
-            }
+  // 알라딘 목차 수동 스크래핑 실행
+  const handleScrapeToc = () => {
+    if (!isSaved || !savedBook || !savedBook.isbn) return;
+    toast.loading('알라딘에서 목차를 수집하는 중입니다...', { id: 'scrape-toc' });
+    updateBookMutation.mutate(
+      {
+        id: savedBook.id,
+        data: { scrapeToc: true } as any
+      },
+      {
+        onSuccess: (updatedBook) => {
+          if (updatedBook.toc && updatedBook.toc !== '목차 정보가 없습니다.') {
+            setToc(updatedBook.toc);
+            toast.success('도서 목차가 성공적으로 수집되었습니다.', { id: 'scrape-toc' });
+          } else {
+            toast.error('목차 정보를 찾을 수 없습니다.', { id: 'scrape-toc' });
           }
+        },
+        onError: () => {
+          toast.error('목차 수집 중 오류가 발생했습니다.', { id: 'scrape-toc' });
         }
-      );
-    }
-  }, [isSaved, savedBook, attemptedScrapeIsbns, updateBookMutation]);
+      }
+    );
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -502,6 +504,33 @@ function SearchContent() {
                       {isSaved ? '이미 등록된 도서의 비밀번호는 수정할 수 없습니다.' : '서재 등록 시 책을 삭제할 때 사용할 비밀번호입니다 (기본: 0000).'}
                     </p>
                   </div>
+
+                  {/* 목차 정보 관리 (수동 수집) */}
+                  {isSaved && (
+                    <div className="space-y-2 border-t pt-5">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-xs text-slate-500">목차 정보</span>
+                        {(!toc || toc === '목차 정보가 없습니다.') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleScrapeToc}
+                            disabled={updateBookMutation.isPending}
+                            className="h-7 text-[10px] text-primary border-primary/20 hover:bg-primary/5 px-2 py-0"
+                          >
+                            {updateBookMutation.isPending ? '수집 중...' : '알라딘 목차 수집'}
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {toc && toc !== '목차 정보가 없습니다.' ? (
+                          <span className="text-green-600 font-medium">✓ 목차 정보가 수집되어 있습니다.</span>
+                        ) : (
+                          <span className="text-amber-600 font-medium">⚠ 목차 정보가 없습니다.</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Category Assignment badges (Clickable to assign) */}
                   <div className="space-y-3 border-t pt-5">

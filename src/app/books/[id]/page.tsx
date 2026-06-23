@@ -111,7 +111,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [toc, setToc] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [hasAttemptedScrape, setHasAttemptedScrape] = useState(false);
   const [loadedBookId, setLoadedBookId] = useState<string | null>(null);
 
   // 다중 큐레이션 메모 상태
@@ -146,27 +145,30 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     }
   }, [book, loadedBookId]);
 
-  // 목차가 비어있고 ISBN이 있는 경우, 상세 페이지 진입 시 자동으로 백그라운드 스크래핑 실행
-  useEffect(() => {
-    if (book && !book.toc && book.isbn && !hasAttemptedScrape && !updateBookMutation.isPending) {
-      setHasAttemptedScrape(true);
-      console.log("Automatically scraping TOC for book:", book.id);
-      updateBookMutation.mutate(
-        {
-          id: resolvedParams.id,
-          data: { scrapeToc: true } as any
-        },
-        {
-          onSuccess: (updatedBook) => {
-            if (updatedBook.toc) {
-              setToc(updatedBook.toc);
-              toast.success('도서 목차가 자동으로 수집되었습니다.');
-            }
+  // 알라딘 목차 수동 스크래핑 실행
+  const handleScrapeToc = () => {
+    if (!book || !book.isbn) return;
+    toast.loading('알라딘에서 목차를 수집하는 중입니다...', { id: 'scrape-toc' });
+    updateBookMutation.mutate(
+      {
+        id: resolvedParams.id,
+        data: { scrapeToc: true } as any
+      },
+      {
+        onSuccess: (updatedBook) => {
+          if (updatedBook.toc && updatedBook.toc !== '목차 정보가 없습니다.') {
+            setToc(updatedBook.toc);
+            toast.success('도서 목차가 성공적으로 수집되었습니다.', { id: 'scrape-toc' });
+          } else {
+            toast.error('목차 정보를 찾을 수 없습니다.', { id: 'scrape-toc' });
           }
+        },
+        onError: () => {
+          toast.error('목차 수집 중 오류가 발생했습니다.', { id: 'scrape-toc' });
         }
-      );
-    }
-  }, [book, resolvedParams.id, hasAttemptedScrape, updateBookMutation]);
+      }
+    );
+  };
 
   const groupedCategories = {
     market: allCategories?.filter((c: any) => c.group === 'market') || [],
@@ -713,9 +715,23 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* 3. 도서 목차 (큐레이션 메모 바로 하단에 표시) */}
-                {book.toc && (
-                  <div className="space-y-2 border-t pt-5 mt-5">
-                    <h3 className="font-semibold text-sm text-slate-500">목차</h3>
+                <div className="space-y-2 border-t pt-5 mt-5">
+                  <h3 className="font-semibold text-sm text-slate-500 flex items-center justify-between">
+                    <span>목차</span>
+                    {(book && (!book.toc || book.toc === '목차 정보가 없습니다.')) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleScrapeToc}
+                        disabled={updateBookMutation.isPending}
+                        className="text-xs font-semibold text-primary border-primary/20 hover:bg-primary/5 px-2 py-1 h-auto"
+                      >
+                        {updateBookMutation.isPending ? '수집 중...' : '알라딘 목차 수집'}
+                      </Button>
+                    )}
+                  </h3>
+                  
+                  {book && book.toc && book.toc !== '목차 정보가 없습니다.' ? (
                     <div className="relative border rounded-xl bg-white shadow-xs overflow-hidden transition-all duration-300">
                       <div 
                         className={`text-sm leading-relaxed text-slate-650 p-5 whitespace-pre-line ${
@@ -750,8 +766,12 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="border rounded-xl bg-slate-50/50 p-5 text-center text-sm text-slate-400">
+                      목차 정보가 없습니다. 상단의 '알라딘 목차 수집' 버튼을 눌러보세요.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

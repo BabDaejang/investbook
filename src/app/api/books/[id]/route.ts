@@ -45,6 +45,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const scrapedToc = await fetchTOCFromAladin(existingBook.isbn);
         if (scrapedToc) {
           dataToUpdate.toc = scrapedToc;
+        } else {
+          dataToUpdate.toc = '목차 정보가 없습니다.';
         }
       }
     }
