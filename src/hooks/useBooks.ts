@@ -22,7 +22,7 @@ export function useBookSearch(query: string) {
     queryFn: async () => {
       if (!query) return { items: [] };
       const res = await fetch(`/api/books/search?q=${encodeURIComponent(query)}`);
-      if (!res.ok) throw new Error('Failed to search books from Naver');
+      if (!res.ok) throw new Error('Failed to search books from Kakao');
       return res.json();
     },
     enabled: !!query,

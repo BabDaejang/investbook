@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { searchBooks } from '@/lib/naver';
+import { searchBooks } from '@/lib/kakao';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

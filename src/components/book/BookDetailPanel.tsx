@@ -70,11 +70,9 @@ export function BookDetailPanel({ book, isOpen, onClose }: BookDetailPanelProps)
                 {book.isbn13 && <p className="text-xs text-slate-400 mt-1">ISBN: {book.isbn13}</p>}
                 
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  {book.naverUrl && (
-                    <Button variant="outline" size="sm" onClick={() => window.open(book.naverUrl, '_blank')} className="h-8 text-xs bg-[#03C75A]/10 text-[#03C75A] border-[#03C75A]/20 hover:bg-[#03C75A]/20">
-                      네이버 쇼핑
-                    </Button>
-                  )}
+                  <Button variant="outline" size="sm" onClick={() => window.open(book.naverUrl || `https://search.daum.net/search?w=book&q=${encodeURIComponent(book.isbn13 || book.title)}`, '_blank')} className="h-8 text-xs bg-[#0074E8]/10 text-[#0074E8] border-[#0074E8]/20 hover:bg-[#0074E8]/20">
+                    다음 책
+                  </Button>
                 </div>
               </div>
             </div>

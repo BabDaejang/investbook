@@ -11,7 +11,7 @@ datasource db {
 model Book {
   id            String   @id @default(cuid())
 
-  // 네이버 API 기반 데이터
+  // 도서 검색 API(카카오) 기반 데이터
   isbn          String?  @unique
   title         String
   authors       String   // JSON 배열 문자열 ["저자1", "저자2"]
@@ -19,7 +19,7 @@ model Book {
   publishedDate String?
   description   String?
   thumbnail     String?  // 표지 이미지 URL
-  naverUrl      String?  // 네이버 도서 페이지 URL
+  naverUrl      String?  // 도서 페이지 URL (과거: 네이버 / 현재: 다음·카카오. DB 호환을 위해 컬럼명 유지)
 
   // 큐레이션 데이터
   toc           String?  // 도서 목차

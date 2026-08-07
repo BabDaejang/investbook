@@ -206,13 +206,11 @@ export function RightSidebar() {
                   <p className="text-xs text-slate-500 line-clamp-1">{authors?.join(', ')}</p>
                   <p className="text-[11px] text-slate-400 line-clamp-1">{book.publisher} · {book.publishedDate}</p>
 
-                  {book.naverUrl && (
-                    <div className="mt-2">
-                      <Button variant="outline" size="sm" onClick={() => window.open(book.naverUrl, '_blank')} className="h-7 text-[10px] px-2 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
-                        네이버 쇼핑 <ExternalLink className="w-3 h-3 ml-1" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="mt-2">
+                    <Button variant="outline" size="sm" onClick={() => window.open(book.naverUrl?.includes('daum.net') ? book.naverUrl : `https://search.daum.net/search?w=book&q=${encodeURIComponent(book.isbn || book.title)}`, '_blank')} className="h-7 text-[10px] px-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100">
+                      다음 책 <ExternalLink className="w-3 h-3 ml-1" />
+                    </Button>
+                  </div>
                 </div>
               </div>
 

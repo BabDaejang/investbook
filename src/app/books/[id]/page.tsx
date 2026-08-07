@@ -478,9 +478,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                     onClick={() => window.open(`https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord=${book.isbn || book.title}`, '_blank')}>
                     알라딘
                   </Button>
-                  <Button size="sm" className="w-full bg-[#03C75A] hover:bg-[#03C75A]/90 text-white border-none text-xs"
-                    onClick={() => window.open(book.naverUrl || `https://search.shopping.naver.com/book/search?query=${book.isbn || book.title}`, '_blank')}>
-                    네이버 책 <ExternalLink className="w-3 h-3 ml-1" />
+                  <Button size="sm" className="w-full bg-[#0074E8] hover:bg-[#0074E8]/90 text-white border-none text-xs"
+                    onClick={() => window.open(book.naverUrl?.includes('daum.net') ? book.naverUrl : `https://search.daum.net/search?w=book&q=${encodeURIComponent(book.isbn || book.title)}`, '_blank')}>
+                    다음 책 <ExternalLink className="w-3 h-3 ml-1" />
                   </Button>
                   <Button size="sm" variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
                     onClick={() => window.open(`https://www.yes24.com/Product/Search?query=${book.isbn || book.title}`, '_blank')}>

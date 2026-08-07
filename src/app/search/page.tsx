@@ -291,7 +291,7 @@ function SearchContent() {
 
               {/* Rendering list */}
               {activeQuery ? (
-                // 1. Naver Search results view
+                // 1. Kakao Search results view
                 isSearchLoading ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => <Skeleton key={i} className="w-full h-24 rounded-xl" />)}
@@ -466,10 +466,10 @@ function SearchContent() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => window.open(selectedBook.naverUrl || `https://search.shopping.naver.com/book/search?query=${selectedBook.isbn13 || selectedBook.title}`, '_blank')}
-                      className="h-8 text-[11px] bg-[#03C75A]/5 text-[#03C75A] border-[#03C75A]/20 hover:bg-[#03C75A]/10 hover:text-[#03C75A] px-1"
+                      onClick={() => window.open(selectedBook.naverUrl || `https://search.daum.net/search?w=book&q=${encodeURIComponent(selectedBook.isbn13 || selectedBook.title)}`, '_blank')}
+                      className="h-8 text-[11px] bg-[#0074E8]/5 text-[#0074E8] border-[#0074E8]/20 hover:bg-[#0074E8]/10 hover:text-[#0074E8] px-1"
                     >
-                      네이버
+                      다음
                     </Button>
                     <Button 
                       variant="outline" 
