@@ -1,4 +1,6 @@
 const USE_MOCK = !process.env.KAKAO_REST_API_KEY;
+import { getHighResThumbnail } from '@/lib/bookImage';
+
 
 export interface NormalizedBook {
   isbn13: string;
@@ -42,7 +44,7 @@ export async function searchBooks(query: string): Promise<NormalizedBook[]> {
       publisher: item.publisher || '',
       publishedDate,
       description: item.contents || '',
-      thumbnail: item.thumbnail || '',
+      thumbnail: getHighResThumbnail(item.thumbnail),
       naverUrl: item.url || '', // 다음(Daum) 책 상세 페이지 URL
     };
   });

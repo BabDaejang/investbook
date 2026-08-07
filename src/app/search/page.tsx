@@ -14,6 +14,7 @@ import { useBookSearch, useBooks, useSaveBook, useUpdateBook, useDeleteBook } fr
 import { BookSearchResult } from '@/components/book/BookSearchResult';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { getHighResThumbnail } from '@/lib/bookImage';
 import { 
   Search, Plus, Trash2, ExternalLink, BookOpen, 
   Settings, Sparkles, Folder, Library, Check, Loader2, X, ShieldAlert 
@@ -408,7 +409,7 @@ function SearchContent() {
                     <div className="relative w-20 h-28 shrink-0 bg-muted rounded border overflow-hidden shadow-xs">
                       {selectedBook.thumbnail ? (
                         <Image 
-                          src={selectedBook.thumbnail} 
+                          src={getHighResThumbnail(selectedBook.thumbnail)} 
                           alt={selectedBook.title} 
                           fill 
                           className="object-cover" 

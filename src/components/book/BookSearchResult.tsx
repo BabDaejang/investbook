@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { getHighResThumbnail } from '@/lib/bookImage';
 import {
   Tooltip,
   TooltipContent,
@@ -28,7 +29,7 @@ export function BookSearchResult({ book, isSaved, savedBook, onClick }: BookSear
           }
         >
           {book.thumbnail ? (
-            <Image src={book.thumbnail} alt={book.title} fill className="object-cover" sizes="64px" />
+            <Image src={getHighResThumbnail(book.thumbnail)} alt={book.title} fill className="object-cover" sizes="64px" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400">No Img</div>
           )}

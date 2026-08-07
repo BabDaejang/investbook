@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { getHighResThumbnail } from '@/lib/bookImage';
 import { useUiStore } from '@/store/uiStore';
 import { useCategories } from '@/hooks/useCategories';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -196,7 +197,7 @@ export function RightSidebar() {
               <div className="flex gap-3">
                 <div className="relative w-20 h-28 shrink-0 bg-slate-100 rounded-lg overflow-hidden border shadow-sm">
                   {book.thumbnail ? (
-                    <Image src={book.thumbnail} alt={book.title} fill className="object-cover" sizes="80px" />
+                    <Image src={getHighResThumbnail(book.thumbnail)} alt={book.title} fill className="object-cover" sizes="80px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400">No Image</div>
                   )}

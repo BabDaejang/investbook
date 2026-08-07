@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { getHighResThumbnail } from '@/lib/bookImage';
 import { useRouter } from 'next/navigation';
 import { CategoryBadge } from '@/components/category/CategoryBadge';
 import {
@@ -39,7 +40,7 @@ export function BookCard({ book }: BookCardProps) {
         >
           {book.thumbnail ? (
             <Image
-              src={book.thumbnail}
+              src={getHighResThumbnail(book.thumbnail)}
               alt={book.title}
               fill
               className="object-cover transition-transform group-hover:scale-105"

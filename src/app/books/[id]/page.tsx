@@ -2,6 +2,8 @@
 
 import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
+import { getHighResThumbnail } from '@/lib/bookImage';
+import { ShareButtons } from '@/components/book/ShareButtons';
 import { useRouter } from 'next/navigation';
 import { useBookDetail, useUpdateBook, useDeleteBook, useAddCurationNote, useUpdateCurationNote, useDeleteCurationNote } from '@/hooks/useBooks';
 import { useCategories } from '@/hooks/useCategories';
@@ -453,6 +455,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     authors = typeof book.authors === 'string' && book.authors ? [book.authors] : [];
   }
 
+  let parsedAuthors = '';
+  try {
+    parsedAuthors = JSON.parse(book.authors || '[]').join(', ');
+  } catch {
+    parsedAuthors = authors.join(', ');
+  }
+
   return (
     <AppShell>
       {/* 중앙: 도서 상세정보 */}
@@ -467,10 +476,17 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               <div className="w-full md:w-48 shrink-0">
                 <div className="relative aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden border shadow-md">
                   {book.thumbnail
-                    ? <Image src={book.thumbnail} alt={book.title} fill className="object-cover" sizes="192px" priority />
+                    ? <Image src={getHighResThumbnail(book.thumbnail)} alt={book.title} fill className="object-cover" sizes="192px" priority />
                     : <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="w-12 h-12 text-slate-300" /></div>
                   }
                 </div>
+
+                {/* 공유 버튼 */}
+                <ShareButtons
+                  title={book.title}
+                  description={[parsedAuthors, book.publisher].filter(Boolean).join(' · ')}
+                  thumbnail={getHighResThumbnail(book.thumbnail)}
+                />
 
                 {/* 외부 구매 링크 */}
                 <div className="mt-4 flex flex-col gap-2">

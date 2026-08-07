@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { getHighResThumbnail } from '@/lib/bookImage';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,7 +62,7 @@ export function BookDetailPanel({ book, isOpen, onClose }: BookDetailPanelProps)
           <div className="p-6 space-y-6">
             <div className="flex gap-4">
               <div className="relative w-28 h-40 shrink-0 bg-muted rounded-md overflow-hidden border shadow-sm">
-                {book.thumbnail && <Image src={book.thumbnail} alt={book.title} fill className="object-cover" sizes="112px" />}
+                {book.thumbnail && <Image src={getHighResThumbnail(book.thumbnail)} alt={book.title} fill className="object-cover" sizes="112px" />}
               </div>
               <div className="flex flex-col gap-1">
                 <h2 className="text-xl font-bold leading-tight">{book.title}</h2>
